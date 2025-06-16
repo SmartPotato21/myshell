@@ -44,7 +44,8 @@ void shell_loop()
             execvp(Tokens->words[0], Tokens->words);
             exit(EXIT_FAILURE);
         } 
-        
+        wait(NULL);
+
         //TODO: HANDLE FORK FAILURE
 
 
