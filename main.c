@@ -7,10 +7,10 @@ char** split_line();
 typedef struct {   
   char** words;           
   int count;       
-} commands; 
+} tokens; 
 
 
-/*  example of cmds:
+/*  example of tokens:
         
             input = grep "search" file.txt     
             cmds:
@@ -26,23 +26,32 @@ void shell_loop()
         printf("customshell> ");
 
 
-        commands *cmds = malloc(sizeof(commands));          //init struct
+        tokens *Tokens = malloc(sizeof(tokens));          //init struct
 
         
 
         char* new_line = read_line();
-        char** split = split_line(new_line, cmds);
+        char** split = split_line(new_line, Tokens);
 
         
-        //TODO: CREATE BASH FUNCTIONS THAT ARE CALLLED HERE
+        //TODO: CREATE CUSTOM BASH FUNCTIONS THAT ARE CALLLED HERE
 
+        int pid = fork();                                   //for for execvp bash
+    
+        if (pid == 0)            //if we are child AND forked success
+        {
+            
+            execvp(Tokens->words[0], Tokens->words);
+            exit(EXIT_FAILURE);
+        } 
+        
+        //TODO: HANDLE FORK FAILURE
 
-        printf("typed: %i\n", cmds->count);             //debug line
 
 
         free(new_line);                                 //kill all all of them every single one
         free(split);
-        free(cmds);
+        free(Tokens);
         new_line = NULL;
         split = NULL;
     }
@@ -78,10 +87,10 @@ char* read_line()
         
     }
 }
-char** split_line(char* line, commands *cmd)
+char** split_line(char* line, tokens *cmd)
 {
     char** finalreturn = malloc(5 * sizeof(char*)); //up to 5 words
-    finalreturn[0] = malloc(16 * sizeof(char));     //up to 16 letters          //TODO: HANDLE OVERFLOW
+    finalreturn[0] = malloc(16 * sizeof(char));     //up to 16 letters          //TODO: HANDLE OVERFLOW, HOW TO HANDLE MORE THAN 5 WORDS??
     
     if (line == NULL)   {exit(EXIT_FAILURE);}
 
@@ -112,11 +121,20 @@ char** split_line(char* line, commands *cmd)
    
     finalreturn[word_index][letter_index++] = '\0';         //adds string EOF
 
-
-    cmd->words = finalreturn;                           //modify struct
     cmd->count = word_index+1;
 
-    return finalreturn;
+
+    word_index++;
+    while(word_index <= 4)                                  //leave unused tokens as NULL
+    {
+        finalreturn[word_index] = NULL;
+        word_index++;
+    }
+
+
+    cmd->words = finalreturn;                           //point struct to new variable
+
+    return finalreturn;                                 //TO free later
 }
 
 int main() 
